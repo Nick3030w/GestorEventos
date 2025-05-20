@@ -1,11 +1,12 @@
 
 package controller;
 
-
 public class Controller {
-    
-    void run (){
-        
+    /**
+     * La aplicacion inicia en la vista
+     */
+    void run() {
+
     }
-    
+
 }
