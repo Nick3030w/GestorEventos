@@ -2,6 +2,8 @@ package model.DAO;
 
 import model.Promotor;
 import model.Conection.SqlDB;
+import model.enums.TipoPromotor;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +39,7 @@ public class PromotorDAO {
                 Promotor p = new Promotor();
                 p.setPromotorID(rs.getInt("id_promotor"));
                 p.setNombre(rs.getString("nombre"));
-                p.setTipo(Promotor.Tipo.valueOf(rs.getString("tipo")));
+                p.setTipo(TipoPromotor.valueOf(rs.getString("tipo")));
                 p.setCelular(rs.getString("celular"));
                 p.setCorreo(rs.getString("correo"));
                 promotores.add(p);

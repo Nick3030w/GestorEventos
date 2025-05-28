@@ -3,6 +3,8 @@ package model.DAO;
 
 import model.Artista_Banda;
 import model.Conection.SqlDB;
+import model.enums.BandaGenero;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +15,7 @@ public class Artista_BandaDAO {
         try (Connection conn = SqlDB.getCo().getCnn();
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, artista.getNombre());
-            stmt.setString(2, artista.getGenero());
+            stmt.setString(2, artista.getGenero().name());
             stmt.setString(3, artista.getIntegrantes());
             stmt.executeUpdate();
 
@@ -37,7 +39,18 @@ public class Artista_BandaDAO {
                 Artista_Banda a = new Artista_Banda();
                 a.setArtistaID(rs.getInt("id_artista"));
                 a.setNombre(rs.getString("nombre"));
-                a.setGenero(rs.getString("genero"));
+
+                // Versión más segura para convertir el género
+                String generoStr = rs.getString("genero");
+                if (generoStr != null) {
+                    try {
+                        a.setGenero(BandaGenero.valueOf(generoStr));
+                    } catch (IllegalArgumentException e) {
+                        // Manejar valor desconocido (podrías asignar un valor por defecto)
+                        a.setGenero(null); // o BandaGenero.OTRO si defines ese valor
+                    }
+                }
+
                 a.setIntegrantes(rs.getString("integrantes"));
                 artistas.add(a);
             }
@@ -51,10 +64,12 @@ public class Artista_BandaDAO {
         String sql = "UPDATE artista_banda SET nombre = ?, genero = ?, integrantes = ? WHERE id_artista = ?";
         try (Connection conn = SqlDB.getCo().getCnn();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, artista.getNombre());
-            stmt.setString(2, artista.getGenero());
+            stmt.setString(2, artista.getGenero().name()); // Convertir enum a String
             stmt.setString(3, artista.getIntegrantes());
             stmt.setInt(4, artista.getArtistaID());
+
             stmt.executeUpdate();
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();

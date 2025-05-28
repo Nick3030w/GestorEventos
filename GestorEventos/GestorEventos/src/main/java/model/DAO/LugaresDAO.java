@@ -13,7 +13,7 @@ public class LugaresDAO {
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, lugar.getNombre());
             stmt.setString(2, lugar.getDireccion());
-            stmt.setInt(3, lugar.getCapacidad());
+            stmt.setDouble(3, lugar.getCapacidad());
             stmt.executeUpdate();
 
             try (ResultSet rs = stmt.getGeneratedKeys()) {
@@ -52,7 +52,7 @@ public class LugaresDAO {
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, lugar.getNombre());
             stmt.setString(2, lugar.getDireccion());
-            stmt.setInt(3, lugar.getCapacidad());
+            stmt.setDouble(3, lugar.getCapacidad());
             stmt.setInt(4, lugar.getLugarID());
             stmt.executeUpdate();
         } catch (SQLException | ClassNotFoundException e) {
