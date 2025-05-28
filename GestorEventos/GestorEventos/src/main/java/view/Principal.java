@@ -23,7 +23,9 @@ import model.DAO.EventoDAO;
 import model.DAO.LugaresDAO;
 import model.DAO.PromotorDAO;
 import model.DAO.TicketDAO;
+import model.enums.BandaGenero;
 import model.enums.EstadoTicket;
+import model.enums.TipoPromotor;
 import model.enums.TipoTicket;
 import model.Evento;
 import model.Lugares;
@@ -207,7 +209,7 @@ public class Principal extends javax.swing.JFrame {
                 try {
                     Artista_Banda nuevoArtista = new Artista_Banda();
                     nuevoArtista.setNombre(nombreArtista);
-                    nuevoArtista.setGenero(genero);
+                    nuevoArtista.setGenero(BandaGenero.valueOf(genero));
                     nuevoArtista.setIntegrantes(integrantes);
                     Artista_BandaDAO artistaDAO = new Artista_BandaDAO();
                     artistaDAO.create(nuevoArtista);
@@ -232,7 +234,7 @@ public class Principal extends javax.swing.JFrame {
                 try {
                     Promotor nuevoPromotor = new Promotor();
                     nuevoPromotor.setNombre(nombrePromotor);
-                    nuevoPromotor.setTipo(Promotor.Tipo.valueOf(tipoPromotor.toUpperCase()));
+                    nuevoPromotor.setTipo(TipoPromotor.valueOf(tipoPromotor.toUpperCase()));
                     nuevoPromotor.setCelular(celular);
                     nuevoPromotor.setCorreo(correo);
                     PromotorDAO promotorDAO = new PromotorDAO();
@@ -359,9 +361,9 @@ public class Principal extends javax.swing.JFrame {
                     ticket.setTicketID(idTicket);
                     ticket.setClienteID(Integer.parseInt(nuevoIdClienteStr));
                     ticket.setEventoID(Integer.parseInt(nuevoIdEventoStr));
-                    ticket.setTipo(Ticket.Tipo.valueOf(nuevoTipo.toUpperCase()));
+                    ticket.setTipo(TipoTicket.valueOf(nuevoTipo.toUpperCase()));
                     ticket.setPrecio(Float.parseFloat(nuevoPrecioStr));
-                    ticket.setEstado(Ticket.Estado.valueOf(nuevoEstado.toUpperCase()));
+                    ticket.setEstado(EstadoTicket.valueOf(nuevoEstado.toUpperCase()));
                     TicketDAO ticketDAO = new TicketDAO();
                     ticketDAO.update(ticket);
                     JOptionPane.showMessageDialog(this, "Ticket actualizado.");
@@ -395,7 +397,7 @@ public class Principal extends javax.swing.JFrame {
                     Artista_Banda artista = new Artista_Banda();
                     artista.setArtistaID(idArtista);
                     artista.setNombre(nuevoNombreArtista);
-                    artista.setGenero(nuevoGenero);
+                    artista.setGenero(BandaGenero.valueOf(nuevosIntegrantes));
                     artista.setIntegrantes(nuevosIntegrantes);
                     Artista_BandaDAO artistaDAO = new Artista_BandaDAO();
                     artistaDAO.update(artista);
@@ -431,7 +433,7 @@ public class Principal extends javax.swing.JFrame {
                     Promotor promotor = new Promotor();
                     promotor.setPromotorID(idPromotor);
                     promotor.setNombre(nuevoNombrePromotor);
-                    promotor.setTipo(Promotor.Tipo.valueOf(nuevoTipoPromotor.toUpperCase()));
+                    promotor.setTipo(TipoPromotor.valueOf(nuevoTipoPromotor.toUpperCase()));
                     promotor.setCelular(nuevoCelular);
                     promotor.setCorreo(nuevoCorreo);
                     PromotorDAO promotorDAO = new PromotorDAO();
