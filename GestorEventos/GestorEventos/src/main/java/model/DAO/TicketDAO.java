@@ -3,6 +3,9 @@ package model.DAO;
 
 import model.Ticket;
 import model.Conection.SqlDB;
+import model.enums.EstadoTicket;
+import model.enums.TipoTicket;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +18,7 @@ public class TicketDAO {
             stmt.setInt(1, ticket.getClienteID());
             stmt.setInt(2, ticket.getEventoID());
             stmt.setString(3, ticket.getTipo().name());
-            stmt.setFloat(4, ticket.getPrecio());
+            stmt.setFloat(4, ticket.getPrecio()); // Cambiado a setFloat
             stmt.setString(5, ticket.getEstado().name());
             stmt.executeUpdate();
 
@@ -40,9 +43,10 @@ public class TicketDAO {
                 t.setTicketID(rs.getInt("id_ticket"));
                 t.setClienteID(rs.getInt("id_cliente"));
                 t.setEventoID(rs.getInt("id_evento"));
-                t.setTipo(Ticket.Tipo.valueOf(rs.getString("tipo")));
+                t.setTipo(TipoTicket.valueOf(rs.getString("tipo")));
                 t.setPrecio(rs.getFloat("precio"));
-                t.setEstado(Ticket.Estado.valueOf(rs.getString("estado")));
+                t.setEstado(EstadoTicket.valueOf(rs.getString("estado")));
+
                 tickets.add(t);
             }
         } catch (SQLException | ClassNotFoundException e) {

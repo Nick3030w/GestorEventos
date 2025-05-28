@@ -4,14 +4,13 @@ package model;
 import model.enums.EstadoTicket;
 import model.enums.TipoTicket;
 
-
 public class Ticket {
-    
+
     private int ticketID;
     private int clienteID;
     private int eventoID;
     private TipoTicket tipo;
-    private double precio;
+    private float precio;
     private EstadoTicket estado;
 
     public Ticket() {
@@ -49,11 +48,11 @@ public class Ticket {
         this.tipo = tipo;
     }
 
-    public double getPrecio() {
+    public float getPrecio() {
         return precio;
     }
 
-    public void setPrecio(double precio) {
+    public void setPrecio(float precio) {
         this.precio = precio;
     }
 
@@ -67,11 +66,8 @@ public class Ticket {
 
     @Override
     public String toString() {
-        return "Ticket{" + "ticketID=" + ticketID + ", clienteID=" + clienteID + ", eventoID=" + eventoID + ", tipo=" + tipo + ", precio=" + precio + ", estado=" + estado + '}';
+        return "Ticket{" + "ticketID=" + ticketID + ", clienteID=" + clienteID + ", eventoID=" + eventoID + ", tipo="
+                + tipo + ", precio=" + precio + ", estado=" + estado + '}';
     }
-    
-    
-    
-    
-    
+
 }
