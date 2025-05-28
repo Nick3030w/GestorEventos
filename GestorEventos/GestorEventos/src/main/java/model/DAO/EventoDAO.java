@@ -1,93 +1,74 @@
 
 package model.DAO;
 
-import model.Conection.SqlDB;
 import model.Evento;
-
+import model.Conection.SqlDB;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
 
 public class EventoDAO {
+    public void create(Evento evento) {
+        String sql = "INSERT INTO evento (id_lugar, nombre_evento, fecha) VALUES (?, ?, ?)";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, evento.getLugarID());
+            stmt.setString(2, evento.getNombreEvento());
+            stmt.setDate(3, new java.sql.Date(evento.getFecha().getTime()));
+            stmt.executeUpdate();
 
-    private SqlDB cnx;
-
-    public EventoDAO() {
-        try {
-            cnx = SqlDB.getCo();
-        } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(EventoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    evento.setEventoID(rs.getInt(1));
+                }
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
-    public ArrayList<Evento> readAll() {
-        ArrayList<Evento> lista = new ArrayList<>();
-        try {
-            String SQL_READ_ALL = "SELECT * FROM evento";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_READ_ALL);
-            ResultSet rs = ps.executeQuery();
-
+    public List<Evento> readAll() {
+        List<Evento> eventos = new ArrayList<>();
+        String sql = "SELECT * FROM evento";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 Evento e = new Evento();
                 e.setEventoID(rs.getInt("id_evento"));
                 e.setLugarID(rs.getInt("id_lugar"));
                 e.setNombreEvento(rs.getString("nombre_evento"));
                 e.setFecha(rs.getDate("fecha"));
-                lista.add(e);
+                eventos.add(e);
             }
-
-        } catch (SQLException ex) {
-            Logger.getLogger(EventoDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
-
-        return lista;
+        return eventos;
     }
 
-    public boolean insert(Evento e) {
-        try {
-            String SQL_INSERT = "INSERT INTO evento (id_lugar, nombre_evento, fecha) VALUES (?, ?, ?)";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_INSERT);
-            ps.setInt(1, e.getLugarID());
-            ps.setString(2, e.getNombreEvento());
-            ps.setDate(3, new java.sql.Date(e.getFecha().getTime()));
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            Logger.getLogger(EventoDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+    public void update(Evento evento) {
+        String sql = "UPDATE evento SET id_lugar = ?, nombre_evento = ?, fecha = ? WHERE id_evento = ?";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, evento.getLugarID());
+            stmt.setString(2, evento.getNombreEvento());
+            stmt.setDate(3, new java.sql.Date(evento.getFecha().getTime()));
+            stmt.setInt(4, evento.getEventoID());
+            stmt.executeUpdate();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
-    public boolean update(Evento e) {
-        try {
-            String SQL_UPDATE = "UPDATE evento SET id_lugar = ?, nombre_evento = ?, fecha = ? WHERE id_evento = ?";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_UPDATE);
-            ps.setInt(1, e.getLugarID());
-            ps.setString(2, e.getNombreEvento());
-            ps.setDate(3, new java.sql.Date(e.getFecha().getTime()));
-            ps.setInt(4, e.getEventoID());
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            Logger.getLogger(EventoDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
-        }
-    }
-
-    public boolean delete(int id) {
-        try {
-            String SQL_DELETE = "DELETE FROM evento WHERE id_evento = ?";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_DELETE);
-            ps.setInt(1, id);
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            Logger.getLogger(EventoDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+    public void delete(int idEvento) {
+        String sql = "DELETE FROM evento WHERE id_evento = ?";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idEvento);
+            stmt.executeUpdate();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 }

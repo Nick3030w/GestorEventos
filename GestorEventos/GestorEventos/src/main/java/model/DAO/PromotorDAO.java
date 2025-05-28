@@ -1,96 +1,76 @@
 package model.DAO;
 
-import model.Conection.SqlDB;
 import model.Promotor;
-import model.enums.TipoPromotor;
-
+import model.Conection.SqlDB;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
 
 public class PromotorDAO {
+    public void create(Promotor promotor) {
+        String sql = "INSERT INTO promotor (nombre, tipo, celular, correo) VALUES (?, ?, ?, ?)";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, promotor.getNombre());
+            stmt.setString(2, promotor.getTipo().name());
+            stmt.setString(3, promotor.getCelular());
+            stmt.setString(4, promotor.getCorreo());
+            stmt.executeUpdate();
 
-    private SqlDB cnx;
-
-    public PromotorDAO() {
-        try {
-            cnx = SqlDB.getCo();
-        } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(PromotorDAO.class.getName()).log(Level.SEVERE, null, ex);
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    promotor.setPromotorID(rs.getInt(1));
+                }
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
-    public ArrayList<Promotor> readAll() {
-        ArrayList<Promotor> lista = new ArrayList<>();
-        try {
-            String SQL_READ_ALL = "SELECT * FROM promotor";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_READ_ALL);
-            ResultSet rs = ps.executeQuery();
-
+    public List<Promotor> readAll() {
+        List<Promotor> promotores = new ArrayList<>();
+        String sql = "SELECT * FROM promotor";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 Promotor p = new Promotor();
                 p.setPromotorID(rs.getInt("id_promotor"));
                 p.setNombre(rs.getString("nombre"));
-                p.setTipo(TipoPromotor.valueOf(rs.getString("tipo")));
+                p.setTipo(Promotor.Tipo.valueOf(rs.getString("tipo")));
                 p.setCelular(rs.getString("celular"));
                 p.setCorreo(rs.getString("correo"));
-                lista.add(p);
+                promotores.add(p);
             }
-
-        } catch (SQLException ex) {
-            Logger.getLogger(PromotorDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
-
-        return lista;
+        return promotores;
     }
 
-    public boolean insert(Promotor p) {
-        try {
-            String SQL_INSERT = "INSERT INTO promotor (nombre, tipo, celular, correo) VALUES (?, ?, ?, ?)";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_INSERT);
-            ps.setString(1, p.getNombre());
-            ps.setString(2, p.getTipo().name());
-            ps.setString(3, p.getCelular());
-            ps.setString(4, p.getCorreo());
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            Logger.getLogger(PromotorDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+    public void update(Promotor promotor) {
+        String sql = "UPDATE promotor SET nombre = ?, tipo = ?, celular = ?, correo = ? WHERE id_promotor = ?";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, promotor.getNombre());
+            stmt.setString(2, promotor.getTipo().name());
+            stmt.setString(3, promotor.getCelular());
+            stmt.setString(4, promotor.getCorreo());
+            stmt.setInt(5, promotor.getPromotorID());
+            stmt.executeUpdate();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
-    public boolean update(Promotor p) {
-        try {
-            String SQL_UPDATE = "UPDATE promotor SET nombre = ?, tipo = ?, celular = ?, correo = ? WHERE id_promotor = ?";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_UPDATE);
-            ps.setString(1, p.getNombre());
-            ps.setString(2, p.getTipo().name());
-            ps.setString(3, p.getCelular());
-            ps.setString(4, p.getCorreo());
-            ps.setInt(5, p.getPromotorID());
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            Logger.getLogger(PromotorDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
-        }
-    }
-
-    public boolean delete(int id) {
-        try {
-            String SQL_DELETE = "DELETE FROM promotor WHERE id_promotor = ?";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_DELETE);
-            ps.setInt(1, id);
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            Logger.getLogger(PromotorDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+    public void delete(int idPromotor) {
+        String sql = "DELETE FROM promotor WHERE id_promotor = ?";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idPromotor);
+            stmt.executeUpdate();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 }

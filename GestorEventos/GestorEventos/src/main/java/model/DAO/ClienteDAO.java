@@ -1,94 +1,67 @@
 package model.DAO;
 
-import model.Conection.SqlDB;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import model.Cliente;
+import model.Conection.SqlDB;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClienteDAO {
+    public void create(Cliente cliente) {
+        String sql = "INSERT INTO cliente (id_persona) VALUES (?)";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, cliente.getPersonaID());
+            stmt.executeUpdate();
 
-    private SqlDB cnx;
-
-    public ClienteDAO() {
-        try {
-            cnx = SqlDB.getCo();
-        } catch (ClassNotFoundException | SQLException ex) {
-            System.out.println("Error al conectar con la base de datos");
-            Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public ArrayList<Cliente> readAll() {
-        ArrayList<Cliente> lista = new ArrayList<>();
-
-        try {
-            String SQL_READ_ALL = "SELECT * FROM cliente";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_READ_ALL);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Cliente dto = new Cliente();
-                dto.setClienteID(rs.getInt("id_cliente"));
-                dto.setPersonaID(rs.getInt("id_persona"));
-
-                lista.add(dto);
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    cliente.setClienteID(rs.getInt(1));
+                }
             }
-
-        } catch (SQLException ex) {
-            System.out.println("Error al ejecutar readAll");
-            Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        return lista;
-    }
-
-   
-    public boolean insertar(Cliente c) {
-        String SQL_INSERT = "INSERT INTO cliente (id_persona) VALUES (?)";
-        try {
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_INSERT);
-            ps.setInt(1, c.getPersonaID());
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            System.out.println("Error al insertar cliente");
-            Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
-    
-    public boolean eliminar(int idCliente) {
-        String SQL_DELETE = "DELETE FROM cliente WHERE id_cliente = ?";
-        try {
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_DELETE);
-            ps.setInt(1, idCliente);
+    public List<Cliente> readAll() {
+        List<Cliente> clientes = new ArrayList<>();
+        String sql = "SELECT * FROM cliente";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Cliente c = new Cliente();
+                c.setClienteID(rs.getInt("id_cliente"));
+                c.setPersonaID(rs.getInt("id_persona"));
+                clientes.add(c);
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return clientes;
+    }
 
-            return ps.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            System.out.println("Error al eliminar cliente");
-            Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+    public void update(Cliente cliente) {
+        String sql = "UPDATE cliente SET id_persona = ? WHERE id_cliente = ?";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, cliente.getPersonaID());
+            stmt.setInt(2, cliente.getClienteID());
+            stmt.executeUpdate();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
-    
-    public boolean actualizar(Cliente c) {
-        String SQL_UPDATE = "UPDATE cliente SET id_persona = ? WHERE id_cliente = ?";
-        try {
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_UPDATE);
-            ps.setInt(1, c.getPersonaID());
-            ps.setInt(2, c.getClienteID());
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            System.out.println("Error al actualizar cliente");
-            Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+    public void eliminar(int idCliente) {
+        String sql = "DELETE FROM cliente WHERE id_cliente = ?";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idCliente);
+            stmt.executeUpdate();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 }

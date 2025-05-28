@@ -1,103 +1,80 @@
 
 package model.DAO;
 
-import model.Conection.SqlDB;
 import model.Ticket;
-import model.enums.EstadoTicket;
-import model.enums.TipoTicket;
-
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import model.Conection.SqlDB;
+import java.sql.*;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
 
 public class TicketDAO {
+    public void create(Ticket ticket) {
+        String sql = "INSERT INTO ticket (id_cliente, id_evento, tipo, precio, estado) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, ticket.getClienteID());
+            stmt.setInt(2, ticket.getEventoID());
+            stmt.setString(3, ticket.getTipo().name());
+            stmt.setFloat(4, ticket.getPrecio());
+            stmt.setString(5, ticket.getEstado().name());
+            stmt.executeUpdate();
 
-    private SqlDB cnx;
-
-    public TicketDAO() {
-        try {
-            cnx = SqlDB.getCo();
-        } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(TicketDAO.class.getName()).log(Level.SEVERE, null, ex);
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    ticket.setTicketID(rs.getInt(1));
+                }
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
-    public ArrayList<Ticket> readAll() {
-        ArrayList<Ticket> lista = new ArrayList<>();
-        try {
-            String SQL_READ_ALL = "SELECT * FROM ticket";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_READ_ALL);
-            ResultSet rs = ps.executeQuery();
-
+    public List<Ticket> readAll() {
+        List<Ticket> tickets = new ArrayList<>();
+        String sql = "SELECT * FROM ticket";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 Ticket t = new Ticket();
                 t.setTicketID(rs.getInt("id_ticket"));
                 t.setClienteID(rs.getInt("id_cliente"));
                 t.setEventoID(rs.getInt("id_evento"));
-                t.setTipo(TipoTicket.valueOf(rs.getString("tipo").replace(" ", "_")));
-                t.setPrecio(rs.getDouble("precio"));
-                t.setEstado(EstadoTicket.valueOf(rs.getString("estado").replace(" ", "_")));
-                lista.add(t);
+                t.setTipo(Ticket.Tipo.valueOf(rs.getString("tipo")));
+                t.setPrecio(rs.getFloat("precio"));
+                t.setEstado(Ticket.Estado.valueOf(rs.getString("estado")));
+                tickets.add(t);
             }
-
-        } catch (SQLException ex) {
-            Logger.getLogger(TicketDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
-
-        return lista;
+        return tickets;
     }
 
-    public boolean insert(Ticket t) {
-        try {
-            String SQL_INSERT = "INSERT INTO ticket (id_cliente, id_evento, tipo, precio, estado) VALUES (?, ?, ?, ?, ?)";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_INSERT);
-            ps.setInt(1, t.getClienteID());
-            ps.setInt(2, t.getEventoID());
-            ps.setString(3, t.getTipo().name());
-            ps.setDouble(4, t.getPrecio());
-            ps.setString(5, t.getEstado().name());
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            Logger.getLogger(TicketDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+    public void update(Ticket ticket) {
+        String sql = "UPDATE ticket SET id_cliente = ?, id_evento = ?, tipo = ?, precio = ?, estado = ? WHERE id_ticket = ?";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, ticket.getClienteID());
+            stmt.setInt(2, ticket.getEventoID());
+            stmt.setString(3, ticket.getTipo().name());
+            stmt.setFloat(4, ticket.getPrecio());
+            stmt.setString(5, ticket.getEstado().name());
+            stmt.setInt(6, ticket.getTicketID());
+            stmt.executeUpdate();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
-    public boolean update(Ticket t) {
-        try {
-            String SQL_UPDATE = "UPDATE ticket SET id_cliente = ?, id_evento = ?, tipo = ?, precio = ?, estado = ? WHERE id_ticket = ?";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_UPDATE);
-            ps.setInt(1, t.getClienteID());
-            ps.setInt(2, t.getEventoID());
-            ps.setString(3, t.getTipo().name());
-            ps.setDouble(4, t.getPrecio());
-            ps.setString(5, t.getEstado().name());
-            ps.setInt(6, t.getTicketID());
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            Logger.getLogger(TicketDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
-        }
-    }
-
-    public boolean delete(int id) {
-        try {
-            String SQL_DELETE = "DELETE FROM ticket WHERE id_ticket = ?";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_DELETE);
-            ps.setInt(1, id);
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            Logger.getLogger(TicketDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+    public void delete(int idTicket) {
+        String sql = "DELETE FROM ticket WHERE id_ticket = ?";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idTicket);
+            stmt.executeUpdate();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -3,99 +3,72 @@ package model.DAO;
 
 import model.Artista_Banda;
 import model.Conection.SqlDB;
-import model.enums.BandaGenero;
-
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
 
 public class Artista_BandaDAO {
+    public void create(Artista_Banda artista) {
+        String sql = "INSERT INTO artista_banda (nombre, genero, integrantes) VALUES (?, ?, ?)";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, artista.getNombre());
+            stmt.setString(2, artista.getGenero());
+            stmt.setString(3, artista.getIntegrantes());
+            stmt.executeUpdate();
 
-    private SqlDB cnx;
-
-    public Artista_BandaDAO() {
-        try {
-            cnx = SqlDB.getCo();
-        } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(Artista_BandaDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public ArrayList<Artista_Banda> readAll() {
-        ArrayList<Artista_Banda> lista = new ArrayList<>();
-        try {
-            String SQL_READ_ALL = "SELECT * FROM artista_banda";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_READ_ALL);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Artista_Banda ab = new Artista_Banda();
-                ab.setArtistaID(rs.getInt("id_artista"));
-                ab.setNombre(rs.getString("nombre"));
-
-                String generoRaw = rs.getString("genero");
-                if (generoRaw != null && !generoRaw.trim().isEmpty()) {
-                    ab.setGenero(BandaGenero.valueOf(generoRaw.trim()));
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    artista.setArtistaID(rs.getInt(1));
                 }
-
-                ab.setIntegrantes(rs.getString("integrantes"));
-                lista.add(ab);
             }
-
-        } catch (SQLException ex) {
-            Logger.getLogger(Artista_BandaDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        return lista;
-    }
-
-    public boolean insert(Artista_Banda ab) {
-        try {
-            String SQL_INSERT = "INSERT INTO artista_banda (nombre, genero, integrantes) VALUES (?, ?, ?)";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_INSERT);
-            ps.setString(1, ab.getNombre());
-            ps.setString(2, ab.getGenero().name());
-            ps.setString(3, ab.getIntegrantes());
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            Logger.getLogger(Artista_BandaDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
-    public boolean update(Artista_Banda ab) {
-        try {
-            String SQL_UPDATE = "UPDATE artista_banda SET nombre = ?, genero = ?, integrantes = ? WHERE id_artista = ?";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_UPDATE);
-            ps.setString(1, ab.getNombre());
-            ps.setString(2, ab.getGenero().name());
-            ps.setString(3, ab.getIntegrantes());
-            ps.setInt(4, ab.getArtistaID());
+    public List<Artista_Banda> readAll() {
+        List<Artista_Banda> artistas = new ArrayList<>();
+        String sql = "SELECT * FROM artista_banda";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Artista_Banda a = new Artista_Banda();
+                a.setArtistaID(rs.getInt("id_artista"));
+                a.setNombre(rs.getString("nombre"));
+                a.setGenero(rs.getString("genero"));
+                a.setIntegrantes(rs.getString("integrantes"));
+                artistas.add(a);
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return artistas;
+    }
 
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            Logger.getLogger(Artista_BandaDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+    public void update(Artista_Banda artista) {
+        String sql = "UPDATE artista_banda SET nombre = ?, genero = ?, integrantes = ? WHERE id_artista = ?";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, artista.getNombre());
+            stmt.setString(2, artista.getGenero());
+            stmt.setString(3, artista.getIntegrantes());
+            stmt.setInt(4, artista.getArtistaID());
+            stmt.executeUpdate();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
-    public boolean delete(int artistaID) {
-        try {
-            String SQL_DELETE = "DELETE FROM artista_banda WHERE id_artista = ?";
-            PreparedStatement ps = cnx.getCnn().prepareStatement(SQL_DELETE);
-            ps.setInt(1, artistaID);
-
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException ex) {
-            Logger.getLogger(Artista_BandaDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+    public void delete(int idArtista) {
+        String sql = "DELETE FROM artista_banda WHERE id_artista = ?";
+        try (Connection conn = SqlDB.getCo().getCnn();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idArtista);
+            stmt.executeUpdate();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 }
